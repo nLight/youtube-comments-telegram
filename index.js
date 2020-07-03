@@ -3,6 +3,7 @@ const Telegram = require("telegraf/telegram");
 const i18n = require("i18n");
 const sqlite3 = require("sqlite3");
 const lodash = require("lodash");
+const Sentry = require("@sentry/node");
 
 i18n.configure({
   defaultLocale: "ru",
@@ -12,6 +13,10 @@ i18n.configure({
 
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
+}
+
+if (process.env.SENTRY_DSN) {
+  Sentry.init({ dsn: process.env.SENTRY_DSN });
 }
 
 const missingEnv = [
