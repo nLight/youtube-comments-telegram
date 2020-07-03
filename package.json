@@ -1,0 +1,19 @@
+{
+  "name": "yt-comments-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "googleapis": "^52.1.0",
+    "i18n": "^0.10.0",
+    "lodash": "^4.17.15",
+    "sqlite3": "^5.0.0",
+    "telegraf": "^3.38.0"
+  }
+}
