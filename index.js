@@ -106,7 +106,7 @@ function fetchVideoTitles(comments) {
       ? Promise.resolve([])
       : google
           .youtube({ version: "v3", auth: GOOGLE_API_KEY || "" })
-          .videos.list({ part: ["snippet"], id: videoIds })
+          .videos.list({ part: ["snippet"], id: lodash.uniq(videoIds) })
           .then(({ data }) => data.items);
 
   return Promise.all([videosPromise, Promise.resolve(comments)]);
