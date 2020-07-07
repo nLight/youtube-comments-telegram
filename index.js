@@ -48,7 +48,7 @@ db.serialize(function () {
 
 const telegram = new Telegram(BOT_TOKEN, {}, false);
 
-const seenCommentsPromise = new Promise((resolve, reject) => {
+const seenComments = new Promise((resolve, reject) => {
   db.all(
     "SELECT * FROM comments WHERE channel_id = ? ORDER BY timestamp DESC LIMIT 5",
     YOUTUBE_CHANNEL_ID,
@@ -59,7 +59,7 @@ const seenCommentsPromise = new Promise((resolve, reject) => {
   );
 });
 
-const apiResponsePromise = google
+const latestComments = google
   .youtube({ version: "v3", auth: GOOGLE_API_KEY || "" })
   .commentThreads.list({
     part: ["snippet"],
@@ -69,19 +69,30 @@ const apiResponsePromise = google
   })
   .then(({ data }) => data.items);
 
-Promise.all([seenCommentsPromise, apiResponsePromise])
-  .then(takeNewComments)
-  .then(fetchVideoTitles)
+const newComments = Promise.all([seenComments, latestComments]).then(
+  takeNewComments
+);
+
+const videoTitles = newComments
+  .then(fetchVideos)
+  .then((videos) =>
+    videos.reduce(
+      (acc, curr) => Object.assign(acc, { [curr.id]: curr.snippet.title }),
+      {}
+    )
+  );
+
+Promise.all([newComments, videoTitles])
   .then(notify)
   .then((response) => console.log(response))
   .catch((err) => console.error(err));
 
 // ======================================================================
 
-function takeNewComments([seenComments, apiComments]) {
+function takeNewComments([seenComments, latestComments]) {
   const seenCommentsSet = new Set(seenComments);
   const newComments = lodash.takeWhile(
-    apiComments,
+    latestComments,
     ({ snippet }) => !seenCommentsSet.has(snippet.topLevelComment.id)
   );
 
@@ -96,33 +107,26 @@ function takeNewComments([seenComments, apiComments]) {
   return newComments;
 }
 
-function fetchVideoTitles(comments) {
+function fetchVideos(comments) {
   const videoIds = comments.map(
     ({ snippet }) => snippet.topLevelComment.snippet.videoId
   );
 
-  const videosPromise =
-    videoIds.length === 0
-      ? Promise.resolve([])
-      : google
-          .youtube({ version: "v3", auth: GOOGLE_API_KEY || "" })
-          .videos.list({ part: ["snippet"], id: lodash.uniq(videoIds) })
-          .then(({ data }) => data.items);
-
-  return Promise.all([videosPromise, Promise.resolve(comments)]);
+  return videoIds.length === 0
+    ? Promise.resolve([])
+    : google
+        .youtube({ version: "v3", auth: GOOGLE_API_KEY || "" })
+        .videos.list({ part: ["snippet"], id: lodash.uniq(videoIds) })
+        .then(({ data }) => data.items);
 }
 
-function notify([videos, comments]) {
+function notify([comments, videoTitles]) {
   if (comments.length === 0) {
     return telegram.sendMessage(TELEGRAM_CHAT_ID, i18n.__("No new comments"), {
       parse_mode: "HTML",
       disable_web_page_preview: true,
     });
   }
-
-  const videoTitles = videos.reduce((acc, curr) => {
-    return Object.assign(acc, { [curr.id]: curr.snippet.title });
-  }, {});
 
   const options = {
     parse_mode: "HTML",
