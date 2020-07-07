@@ -124,28 +124,29 @@ function notify([videos, comments]) {
     return Object.assign(acc, { [curr.id]: curr.snippet.title });
   }, {});
 
-  const promises = comments.map(({ snippet }) => {
-    const {
-      authorChannelUrl,
-      authorDisplayName,
-      videoId,
-      textOriginal,
-      likeCount,
-    } = snippet.topLevelComment.snippet;
+  const options = {
+    parse_mode: "HTML",
+    disable_web_page_preview: true,
+  };
 
-    return telegram.sendMessage(
-      TELEGRAM_CHAT_ID,
-      i18n.__("newCommentMessage", {
-        commentId: snippet.topLevelComment.id,
-        authorChannelUrl,
-        authorDisplayName,
-        videoId,
-        videoTitle: videoTitles[videoId],
-        textOriginal,
-        likeCount: likeCount.toString(),
-      }),
-      { parse_mode: "HTML", disable_web_page_preview: true }
-    );
+  const promises = comments.map(({ snippet: { topLevelComment } }, i) => {
+    const message = i18n.__("newCommentMessage", {
+      commentId: topLevelComment.id,
+      videoTitle: videoTitles[topLevelComment.snippet.videoId],
+      ...topLevelComment.snippet,
+    });
+
+    return new Promise((resolve, reject) => {
+      // Telegram API Rate Limiting workaround. 1 message per second
+      setTimeout(
+        () =>
+          telegram
+            .sendMessage(TELEGRAM_CHAT_ID, message, options)
+            .then(resolve)
+            .catch(reject),
+        i * 1000
+      );
+    });
   });
 
   return Promise.all(promises);
