@@ -121,17 +121,18 @@ function fetchVideos(comments) {
 }
 
 function notify([comments, videoTitles]) {
-  if (comments.length === 0) {
-    return telegram.sendMessage(TELEGRAM_CHAT_ID, i18n.__("No new comments"), {
-      parse_mode: "HTML",
-      disable_web_page_preview: true,
-    });
-  }
-
-  const options = {
+  const messageOptions = {
     parse_mode: "HTML",
     disable_web_page_preview: true,
   };
+
+  if (comments.length === 0) {
+    return telegram.sendMessage(
+      TELEGRAM_CHAT_ID,
+      i18n.__("No new comments"),
+      messageOptions
+    );
+  }
 
   const promises = comments.map(({ snippet: { topLevelComment } }, i) => {
     const message = i18n.__("newCommentMessage", {
@@ -145,7 +146,7 @@ function notify([comments, videoTitles]) {
       setTimeout(
         () =>
           telegram
-            .sendMessage(TELEGRAM_CHAT_ID, message, options)
+            .sendMessage(TELEGRAM_CHAT_ID, message, messageOptions)
             .then(resolve)
             .catch(reject),
         i * 1000
