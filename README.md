@@ -6,13 +6,27 @@ Be in control.
 
 ## Setup
 
+It stores data in Sqlite3 database and will not send the messages twice.
+
+### Deliver messages
+
 Add something like this to the `cron``
 
 ```
-0 7 * * * BOT_TOKEN= TELEGRAM_CHAT_ID= GOOGLE_API_KEY= YOUTUBE_CHANNEL_ID= node index.js
+0 7 * * * NODE_ENV=production BOT_TOKEN= TELEGRAM_CHAT_ID= GOOGLE_API_KEY= YOUTUBE_CHANNEL_ID= node scripts/check-messages.js
 ```
 
-It stores the comment ids it has sent in an Sqlite3 database and will not send them twice.
+### Start the bot
+
+```
+NODE_ENV=production BOT_TOKEN= PORT= node index.js
+```
+
+It will be listening on:
+
+```
+http://<domain>:<PORT>/<BOT_TOKEN>
+```
 
 ### Required ENV variables
 
