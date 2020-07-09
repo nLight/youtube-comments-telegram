@@ -76,4 +76,4 @@ ${rows.map((row) => `- ${row["channel_id"]}`).join("\n")}`,
 });
 
 bot.telegram.setWebhook(WEBHOOK_URL).catch((err) => console.log(err));
-bot.startWebhook(WEBHOOK_URL, null, parseInt(PORT, 10));
+bot.startWebhook(BOT_TOKEN, null, parseInt(PORT, 10), "localhost");
