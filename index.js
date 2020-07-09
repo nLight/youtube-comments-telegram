@@ -77,7 +77,7 @@ const botOptions =
   NODE_ENV === "production"
     ? {
         webhook: {
-          hookPath: BOT_TOKEN,
+          hookPath: WEBHOOK_URL,
           port: parseInt(PORT, 10),
         },
       }
@@ -85,5 +85,5 @@ const botOptions =
         polling: { timeout: 30, limit: 10 },
       };
 
-bot.telegram.setWebhook(WEBHOOK_URL);
+bot.telegram.setWebhook(WEBHOOK_URL).catch((err) => console.log(err));
 bot.launch(botOptions);
