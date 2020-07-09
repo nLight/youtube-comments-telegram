@@ -1,9 +1,7 @@
-const { Telegraf, Markup } = require("telegraf");
+const { Telegraf } = require("telegraf");
 const i18n = require("i18n");
 const sqlite3 = require("sqlite3");
-const lodash = require("lodash");
 const Sentry = require("@sentry/node");
-const { get } = require("lodash");
 
 // Setup =======================================================================
 
@@ -21,9 +19,11 @@ if (process.env.SENTRY_DSN) {
   Sentry.init({ dsn: process.env.SENTRY_DSN });
 }
 
-const missingEnv = ["PORT", "BOT_TOKEN"].filter((e) => !process.env[e]);
+const missingEnv = ["PORT", "BOT_TOKEN", "WEBHOOK_URL"].filter(
+  (e) => !process.env[e]
+);
 
-const { PORT, BOT_TOKEN, NODE_ENV } = process.env;
+const { PORT, BOT_TOKEN, NODE_ENV, WEBHOOK_URL } = process.env;
 
 if (missingEnv.length > 0) {
   console.error("Missing ENV var:", missingEnv.join(", "));
@@ -85,4 +85,5 @@ const botOptions =
         polling: { timeout: 30, limit: 10 },
       };
 
+bot.telegram.setWebhook(WEBHOOK_URL);
 bot.launch(botOptions);
