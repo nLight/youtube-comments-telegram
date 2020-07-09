@@ -40,6 +40,8 @@ const bot = new Telegraf(BOT_TOKEN, {
   },
 });
 
+bot.catch((err) => console.error(err));
+
 bot.on("text", (ctx) => {
   const matches = ctx.message.text.match(/добавь (.*)/);
   if (matches && matches[1]) {
@@ -73,17 +75,5 @@ ${rows.map((row) => `- ${row["channel_id"]}`).join("\n")}`,
   }
 });
 
-const botOptions =
-  NODE_ENV === "production"
-    ? {
-        webhook: {
-          hookPath: WEBHOOK_URL,
-          port: parseInt(PORT, 10),
-        },
-      }
-    : {
-        polling: { timeout: 30, limit: 10 },
-      };
-
 bot.telegram.setWebhook(WEBHOOK_URL).catch((err) => console.log(err));
-bot.launch(botOptions);
+bot.startWebhook(WEBHOOK_URL, null, parseInt(PORT, 10));
