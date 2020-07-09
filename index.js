@@ -47,7 +47,7 @@ bot.on("text", (ctx) => {
       "INSERT INTO youtube_channels (channel_id, telegram_chat_id) VALUES (?, ?)",
       [matches[1], ctx.chat.id],
       (err) => {
-        if (!err) ctx.reply("Канал добавлен!");
+        if (!err) return ctx.reply("Канал добавлен!");
         else ctx.reply("Что-то пошло не так :(");
       }
     );
