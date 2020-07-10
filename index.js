@@ -50,28 +50,41 @@ bot.catch((err) => console.error(err));
 bot.on("text", (ctx) => {
   const matches = ctx.message.text.match(/добавь (.*)/);
   if (matches && matches[1]) {
-    db.run(
-      "INSERT INTO youtube_channels (channel_id, telegram_chat_id) VALUES (?, ?)",
-      [matches[1], ctx.chat.id],
-      (err) => {
-        if (err) ctx.reply(`Что-то пошло не так :(\n${err.message}`);
-        else ctx.reply("Канал добавлен!");
-      }
-    );
+    return new Promise((resolve, reject) => {
+      db.run(
+        "INSERT INTO youtube_channels (channel_id, telegram_chat_id) VALUES (?, ?)",
+        [matches[1], ctx.chat.id],
+        (err) => {
+          if (err) {
+            ctx.reply(`Что-то пошло не так :(\n${err.message}`);
+            reject(err.message);
+          } else {
+            ctx.reply("Канал добавлен!");
+            resolve();
+          }
+        }
+      );
+    });
   } else if (ctx.message.text === "каналы") {
-    db.all(
-      "SELECT * FROM youtube_channels WHERE telegram_chat_id = ?",
-      [ctx.chat.id],
-      (err, rows) => {
-        if (err) ctx.reply(`Что-то пошло не так :(\n${err.message}`);
-        else
-          ctx.replyWithMarkdown(
-            `Каналы подключенные к этому чату:
-${rows.map((row) => `- ${row["channel_id"]}`).join("\n")}`,
-            { disable_web_page_preview: true }
-          );
-      }
-    );
+    return new Promise((resolve, reject) => {
+      db.all(
+        "SELECT * FROM youtube_channels WHERE telegram_chat_id = ?",
+        [ctx.chat.id],
+        (err, rows) => {
+          if (err) {
+            ctx.reply(`Что-то пошло не так :(\n${err.message}`);
+            reject(err.message);
+          } else {
+            ctx.replyWithMarkdown(
+              `Каналы подключенные к этому чату:
+  ${rows.map((row) => `- ${row["channel_id"]}`).join("\n")}`,
+              { disable_web_page_preview: true }
+            );
+            resolve();
+          }
+        }
+      );
+    });
   } else {
     ctx.replyWithMarkdown(`Я не понял команду. Попробуй:
 - добавь [адрес канала]
