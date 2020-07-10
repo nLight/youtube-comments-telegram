@@ -2,7 +2,7 @@ const { Telegraf } = require("telegraf");
 const i18n = require("i18n");
 const sqlite3 = require("sqlite3");
 const Sentry = require("@sentry/node");
-const { drive } = require("googleapis/build/src/apis/drive");
+const crypto = require("crypto");
 
 // Setup =======================================================================
 
@@ -30,6 +30,8 @@ if (missingEnv.length > 0) {
   console.error("Missing ENV var:", missingEnv.join(", "));
   process.exit(1);
 }
+
+const hookPath = `/telegraf/${crypto.randomBytes(32).toString("hex")}`;
 
 const db = new sqlite3.Database("/storage/database");
 db.run(
@@ -105,7 +107,15 @@ bot.on("text", (ctx) => {
 bot.launch({
   webhook: {
     domain: DOMAIN,
+    hookPath: hookPath,
     port: parseInt(PORT, 10),
     cb: (req, res) => console.log(req, res),
   },
 });
+
+// Refresh webhook 🙄
+setInterval(() => {
+  bot.telegram
+    .setWebhook(`https://${DOMAIN}${hookPath}`)
+    .then(() => console.log(`Refreshed: https://${DOMAIN}${hookPath}`));
+}, 60000);
