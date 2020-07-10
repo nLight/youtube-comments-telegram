@@ -75,5 +75,12 @@ ${rows.map((row) => `- ${row["channel_id"]}`).join("\n")}`,
   }
 });
 
-bot.telegram.setWebhook(WEBHOOK_URL).catch((err) => console.log(err));
-bot.startWebhook(BOT_TOKEN, null, parseInt(PORT, 10), "localhost");
+// bot.telegram.setWebhook(WEBHOOK_URL).catch((err) => console.log(err));
+// bot.startWebhook(BOT_TOKEN, null, parseInt(PORT, 10), "localhost");
+bot.launch({
+  webhook: {
+    domain: "youtube-bot.dokku.seniorsoftwarevlogger.com",
+    port: parseInt(PORT, 10),
+    cb: (req, res) => console.log(req, res),
+  },
+});
