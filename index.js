@@ -32,10 +32,19 @@ if (missingEnv.length > 0) {
 }
 
 const db = new sqlite3.Database("/storage/database");
-db.run(`
-  CREATE TABLE IF NOT EXISTS comments (channel_id TEXT, comment_id TEXT PRIMARY KEY, timestamp INTEGER) WITHOUT ROWID;
-  CREATE TABLE IF NOT EXISTS youtube_channels (channel_id TEXT, telegram_chat_id TEXT, locale TEXT DEFAULT "ru", PRIMARY KEY ( channel_id, telegram_chat_id)) WITHOUT ROWID;
-`);
+db.run(
+  `CREATE TABLE IF NOT EXISTS comments
+  (channel_id TEXT, comment_id TEXT PRIMARY KEY, timestamp INTEGER)
+  WITHOUT ROWID`,
+  (err) => console.error(err)
+);
+db.run(
+  `CREATE TABLE IF NOT EXISTS youtube_channels
+  (channel_id TEXT, telegram_chat_id TEXT,
+    locale TEXT DEFAULT "ru", PRIMARY KEY ( channel_id, telegram_chat_id))
+    WITHOUT ROWID`,
+  (err) => console.error(err)
+);
 
 // Main ========================================================================
 
