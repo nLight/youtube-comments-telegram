@@ -34,7 +34,6 @@ http://<domain>:<PORT>/<BOT_TOKEN>
 BOT_TOKEN=
 TELEGRAM_CHAT_ID=
 GOOGLE_API_KEY=
-YOUTUBE_CHANNEL_ID=
 ```
 
 ### Optional ENV variables
