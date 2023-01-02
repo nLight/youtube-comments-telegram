@@ -108,23 +108,25 @@ function notifyChannel({ channel_id, telegram_chat_id, locale }) {
   );
 }
 
-const takeNewComments = (channelId) => ([seenComments, latestComments]) => {
-  const seenCommentsSet = new Set(seenComments);
-  const newComments = lodash.takeWhile(
-    latestComments,
-    ({ snippet }) => !seenCommentsSet.has(snippet.topLevelComment.id)
-  );
+const takeNewComments =
+  (channelId) =>
+  ([seenComments, latestComments]) => {
+    const seenCommentsSet = new Set(seenComments);
+    const newComments = lodash.takeWhile(
+      latestComments,
+      ({ snippet }) => !seenCommentsSet.has(snippet.topLevelComment.id)
+    );
 
-  if (newComments.length > 0) {
-    const stmt = db.prepare("INSERT INTO comments VALUES (?, ?, ?)");
-    newComments.forEach(({ snippet }) => {
-      stmt.run(channelId, snippet.topLevelComment.id, Date.now());
-    });
-    stmt.finalize();
-  }
+    if (newComments.length > 0) {
+      const stmt = db.prepare("INSERT INTO comments VALUES (?, ?, ?)");
+      newComments.forEach(({ snippet }) => {
+        stmt.run(channelId, snippet.topLevelComment.id, Date.now());
+      });
+      stmt.finalize();
+    }
 
-  return newComments;
-};
+    return newComments;
+  };
 
 function fetchVideos(comments) {
   const videoIds = comments.map(
@@ -138,42 +140,44 @@ function fetchVideos(comments) {
         .then(({ data }) => data.items);
 }
 
-const notify = (telegramChatId, locale) => ([comments, videoTitles]) => {
-  const messageOptions = {
-    parse_mode: "HTML",
-    disable_web_page_preview: true,
-  };
+const notify =
+  (telegramChatId, locale) =>
+  ([comments, videoTitles]) => {
+    const messageOptions = {
+      parse_mode: "HTML",
+      disable_web_page_preview: true,
+    };
 
-  if (comments.length === 0) {
-    return telegram.sendMessage(
-      telegramChatId,
-      i18n.__({ phrase: "No new comments", locale }),
-      messageOptions
-    );
-  }
-
-  const promises = comments.map(({ snippet: { topLevelComment } }, i) => {
-    const message = i18n.__(
-      { phrase: "newCommentMessage", locale },
-      {
-        commentId: topLevelComment.id,
-        videoTitle: videoTitles[topLevelComment.snippet.videoId],
-        ...topLevelComment.snippet,
-      }
-    );
-
-    return new Promise((resolve, reject) => {
-      // Telegram API Rate Limiting workaround. 1 message per second
-      setTimeout(
-        () =>
-          telegram
-            .sendMessage(telegramChatId, message, messageOptions)
-            .then(resolve)
-            .catch(reject),
-        i * 1000
+    if (comments.length === 0) {
+      return telegram.sendMessage(
+        telegramChatId,
+        i18n.__({ phrase: "No new comments", locale }),
+        messageOptions
       );
-    });
-  });
+    }
 
-  return Promise.all(promises);
-};
+    const promises = comments.map(({ snippet: { topLevelComment } }, i) => {
+      const message = i18n.__(
+        { phrase: "newCommentMessage", locale },
+        {
+          commentId: topLevelComment.id,
+          videoTitle: videoTitles[topLevelComment.snippet.videoId],
+          ...topLevelComment.snippet,
+        }
+      );
+
+      return new Promise((resolve, reject) => {
+        // Telegram API Rate Limiting workaround. 1 message per second
+        setTimeout(
+          () =>
+            telegram
+              .sendMessage(telegramChatId, message, messageOptions)
+              .then(resolve)
+              .catch(reject),
+          i * 1000
+        );
+      });
+    });
+
+    return Promise.all(promises);
+  };
