@@ -77,7 +77,7 @@ function initDatabase() {
 
 function notifyChannel({ channel_id, telegram_chat_id, locale }) {
   const seenComments = dbAll(
-    "SELECT * FROM comments WHERE channel_id = ? ORDER BY timestamp DESC LIMIT 5",
+    "SELECT * FROM comments WHERE channel_id = ? ORDER BY timestamp DESC LIMIT 1",
     [channel_id]
   ).then((rows) => rows.map((row) => row.comment_id));
 
@@ -118,10 +118,12 @@ const takeNewComments =
     );
 
     if (newComments.length > 0) {
-      const stmt = db.prepare("INSERT INTO comments VALUES (?, ?, ?)");
-      newComments.forEach(({ snippet }) => {
-        stmt.run(channelId, snippet.topLevelComment.id, Date.now());
-      });
+      const stmt = db.prepare("REPLACE INTO comments VALUES (?, ?, ?)");
+      stmt.run(
+        channelId,
+        newComments[0].snippet.topLevelComment.id,
+        Date.now()
+      );
       stmt.finalize();
     }
 
